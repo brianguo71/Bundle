@@ -1,7 +1,3 @@
-
-
-getItems();
-
 var addLinks = document.querySelector('button.add-links');
 if (addLinks){
     addLinks.addEventListener('click', async function(){
@@ -43,9 +39,9 @@ function getItems(){
         var itemsArr = JSON.parse(items);
         for(var i = 0; i < itemsArr.length; i++){
             if (itemsArr[i].fav == false) {
-                newItemHTML += `<div class = "hovercheck"> <li data-itemindex = "${i}" data-links = "${itemsArr[i].links}" class = "list-item"><span class="link-title" >${itemsArr[i].item}</span><div class = "buttons"><span class = "itemFavorite">⭐</span><span class = "itemUpdate" title = "Replace link with current tabs">🔄</span><span class = "itemEdit">✏️️</span><span class = "itemDelete">🗑️</span></div></li></div>`;
+                newItemHTML += `<div class = "hovercheck"> <li data-itemindex = "${i}" data-links = "${itemsArr[i].links}" class = "list-item"><span class="link-title" >${itemsArr[i].item}</span><div class = "buttons"><span class = "itemFavorite" title = "Favorite (opens upon Chrome startup)">⭐</span><span class = "itemUpdate" title = "Replace link with current tabs">🔄</span><span class = "itemEdit" title = "Edit name">✏️️</span><span class = "itemDelete" title = "Delete">🗑️</span></div></li></div>`;
             } else {
-                newItemHTML += `<div class = "hovercheck"><li data-itemindex = "${i}" data-links = "${itemsArr[i].links}" class = "list-item"><div class = "favorited"><span class = "itemFavorite">⭐</span></div><span class="link-title" >${itemsArr[i].item}</span><div class = "buttons"><span class = "itemUpdate" title = "Replace link with current tabs">🔄</span><span class = "itemEdit">✏️️</span><span class = "itemDelete">🗑️</span></div></li></div>`;
+                newItemHTML += `<div class = "hovercheck"><li data-itemindex = "${i}" data-links = "${itemsArr[i].links}" class = "list-item"><div class = "favorited"><span class = "itemFavorite" title = "Unfavorite">⭐</span></div><span class="link-title" >${itemsArr[i].item}</span><div class = "buttons"><span class = "itemUpdate" title = "Replace link with current tabs">🔄</span><span class = "itemEdit" title = "Edit name">✏️️</span><span class = "itemDelete" title = "Delete">🗑️</span></div></li></div>`;
             }
         }
         itemsList.innerHTML = newItemHTML;
@@ -108,7 +104,7 @@ function itemEdit(index){
         console.log(newVal);
         if (newVal == ""){
             alert("Please enter a valid title");
-        } else{
+        } else {
             itemsArr[index].item = newVal;
             itemsArr[index].customTitle = true;
             saveItems(itemsArr);
@@ -128,7 +124,6 @@ function saveItems(obj){
 }
 
 function getAllTabURLs(){
-    // returns an array where linkArr00[0] is the combined title of the links and linkArr00.slice(1) contains all the individual links
     return new Promise((resolve, reject) => {
         try{
             chrome.tabs.query({}, function(tabs){
@@ -159,6 +154,11 @@ function openAllURLs(URLs){
     }
     
 }
+function setOnStartup(links){
+    chrome.storage.sync.set({fav : links},function(){
+        console.log(links)
+    });
+}
 function itemFavorite(index){
     var itemStorage = localStorage.getItem('link-items');
     var items = JSON.parse(itemStorage);
@@ -170,11 +170,17 @@ function itemFavorite(index){
             items[i].fav = false;
         }
         items[0].fav = true;
+        console.log(items[0]);
+        console.log(items[0].links)
+        setOnStartup(items[0].links)
+        chrome.storage.sync.get(['fav'], function(result){
+            console.log(result);
+        })
     }
     else{
+        setOnStartup('');
         items[index].fav = false;
     }
-
 
     saveItems(items);
     getItems();
@@ -207,7 +213,12 @@ async function itemUpdate(index){
         linkTitle = linkArr[0];
     }
     linksToOpen = linkArr.splice(1);
+    if (wasFav){
+        console.log(linksToOpen);
+        setOnStartup(linksToOpen);
+    }
     itemsArr.splice(index, 1, {"item":linkTitle, "links": linksToOpen, "fav": wasFav, "customTitle" : hasCustomTitle});
+
     saveItems(itemsArr);
     getItems();
 }
