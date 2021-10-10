@@ -10,6 +10,10 @@
         "storage",
         "tabs"
     ],
+    "background":{
+        "service_worker": "js/startup.js"
+    },
+
     "icons": { "16": "bundle16.png",
         "48": "bundle48.png",
        "128": "bundle128.png" }
