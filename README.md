@@ -1,2 +1,4 @@
 # Bundle
-Chrome extension used to save multiple tabs into a single link
+Chrome extension that allows you to easily store all current tabs into a single link.
+
+Helps you pick up where you dropped off!
